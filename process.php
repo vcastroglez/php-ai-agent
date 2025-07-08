@@ -6,10 +6,8 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
-use JetBrains\PhpStorm\NoReturn;
 
 try {
 	run();
@@ -18,9 +16,9 @@ try {
 }
 
 /**
- * @throws GuzzleException
+ * @throws \GuzzleHttp\Exception\GuzzleException
  */
-#[NoReturn] function run(): void
+function run()
 {
 	$userPrompt = $_REQUEST['prompt'] ?? null;
 	$think = ($_REQUEST['think'] ?? null) == 'on';
@@ -62,7 +60,7 @@ try {
  * @param bool  $think
  *
  * @return Response
- * @throws GuzzleException
+ * @throws \GuzzleHttp\Exception\GuzzleException
  */
 function chatCall(array $messages, bool $think): Response
 {
@@ -106,6 +104,8 @@ function makeToolCall(array $tools_calls): array
 	return $to_return;
 }
 
+
+//Functions
 function webQuery(array $arguments): false|string
 {
 	$query = $arguments['query'];
@@ -117,14 +117,11 @@ function webQuery(array $arguments): false|string
 		return $response->getBody()->getContents();
 	} catch (RequestException $e) { // Handle request exceptions (e.g., network issues, HTTP errors)
 		return json_encode(['error' => 'Request failed: ' . $e->getMessage()]);
-	} catch (GuzzleException $e) {
-		return json_encode(['error' => 'Request failed: ' . $e->getMessage()]);
 	}
 }
 
 function getTools(): array
 {
-	/** @see webQuery */
 	return [
 		[
 			'type' => 'function',
