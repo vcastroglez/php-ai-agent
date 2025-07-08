@@ -1,0 +1,15 @@
+{
+    "name": "vladimir/web_searcher",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Vladimir\\WebSearcher\\": "src/"
+        }
+    },
+    "require": {
+        "guzzlehttp/guzzle": "^7.9",
+        "larapack/dd": "^1.1",
+        "vlucas/phpdotenv": "^5.6",
+        "erusev/parsedown": "^1.7"
+    }
+}
