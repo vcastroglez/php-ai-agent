@@ -118,6 +118,8 @@ initial-scale=1.0" />
 	<div class="output-box" >
 		<?php
 		$messages = $_SESSION['messages'] ?? [];
+		$think = $_SESSION['think'] ?? false;
+		$log = $_SESSION['log'] ?? [];
 		foreach ($messages as $message) {
 			if (!empty($message['tool_name']) || !empty($message['tool_calls'])) continue;
 			$parser = new Parsedown();
@@ -141,7 +143,7 @@ initial-scale=1.0" />
 			<textarea name="prompt" placeholder="Type your prompt here..." required ></textarea >
 		</label >
 		<label >
-			<input type="checkbox" name="think" />
+			<input type="checkbox" name="think" <?php echo ($think ? 'checked' : ''); ?> />
 			Think
 		</label >
 		<button type="submit" >Submit Prompt</button >
@@ -152,6 +154,9 @@ initial-scale=1.0" />
 		<a href="/?clear=true" >Clear chat</a >
 	</div >
 </div >
+<?php foreach ($log as $line) { ?>
+<p> <?php echo $line; ?>  </p >
+<?php } ?>
 <script>
 	document.addEventListener('DOMContentLoaded', () => {
 		document.querySelectorAll('code').forEach(code => {
