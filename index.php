@@ -125,12 +125,13 @@ initial-scale=1.0" />
 			$parser = new Parsedown();
 			$content = $message['content'];
 			$content = $parser->text($content);
+			$role = $message['role'];
 			?>
 			<p >
-				<b ><?php echo $message['role']; ?>:</b >
+				<b ><?php echo ucfirst($role); ?>:</b >
 			</p >
 			<hr >
-			<?php echo $content; ?>
+			<div <?php echo ($role == 'user' ? 'style="text-align: right"' : ''); ?>><?php echo $content; ?></div>
 			<?php
 		}
 		?>
@@ -140,7 +141,7 @@ initial-scale=1.0" />
 	<form action="process.php"
 		  method="post" >
 		<label >
-			<textarea name="prompt" placeholder="Type your prompt here..." required ></textarea >
+			<textarea style="max-width: 95vw;" name="prompt" placeholder="Type your prompt here..." required ></textarea >
 		</label >
 		<label >
 			<input type="checkbox" name="think" <?php echo ($think ? 'checked' : ''); ?> />

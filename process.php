@@ -9,34 +9,58 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
-use JetBrains\PhpStorm\NoReturn;
 
 try {
-	run();
-} catch (Throwable $e) {
-	dd($e);//vla
-}
-
-/**
- * @throws GuzzleException
- */
-#[NoReturn] function run()
-{
 	$userPrompt = $_REQUEST['prompt'] ?? null;
-	$think = ($_REQUEST['think'] ?? null) == 'on';
+	unset($_REQUEST['prompt']);
+
+	$think = ($_REQUEST['think'] ?? null) == 'on' ?? $_SESSION['think'] ?? false;
 	$_SESSION['think'] = $think;
 
-	if (empty($userPrompt)) {
-		header('Location: /');
-		exit;
-	}
 	$messages = $_SESSION['messages'] ?? [];
-	$messages[] =
-		[
+
+	$lastMessage = null;
+	if (!empty($userPrompt)) {
+		$lastMessage = [
 			"role" => "user",
 			"content" => $userPrompt
 		];
+		$messages[] = $lastMessage;
+	}
 
+	$messages = run($messages, $think);
+	$done = false;
+	$iteration = 0;
+	while (!$done) {
+		if ($iteration > 10) {
+			header('Location: /');
+			exit;
+		}
+
+		$messages = run($messages, $think);
+		$lastMessage = $messages[array_key_last($messages)];
+		if ($lastMessage['role'] == 'assistant' && !empty($lastMessage['content'])) {
+			$done = true;
+		}
+	}
+
+	$_SESSION['messages'] = $messages;
+
+	header('Location: /');
+	exit;
+} catch (Throwable $e) {
+	dd($e);
+}
+
+/**
+ * @param array $messages
+ * @param bool  $think
+ *
+ * @return array
+ * @throws GuzzleException
+ */
+function run(array $messages = [], bool $think = false): array
+{
 	$response = chatCall($messages, $think);
 	$result = json_decode($response->getBody(), true);
 	$message = $result['message'];
@@ -47,15 +71,8 @@ try {
 	if ($message['role'] == 'assistant' && !empty($tools_calls)) {
 		$result = makeToolCall($tools_calls);
 		array_push($messages, ...$result);
-		$response = chatCall($messages, $think);
-		$result = json_decode($response->getBody(), true);
-		$message = $result['message'];
-		$messages[] = $message;
 	}
-
-	$_SESSION['messages'] = $messages;
-	header('Location: /');
-	exit;
+	return $messages;
 }
 
 /**
@@ -191,10 +208,10 @@ function llmPrompt(array $arguments): false|string
 {
 	$prompt = $arguments['prompt'];
 	$client = new Client();
-	$ollamaApiUrl = $_ENV['LLM_API_URL']; // Ollama endpoint
+	$ollamaApiUrl = $_ENV['OLLAMA_BASE']; // Ollama endpoint
 	$ollamaModel = $_ENV['LLM_MODEL']; // Your model name
 	/** @var Response $response */
-	$response = $client->post($ollamaApiUrl, [
+	$response = $client->post("$ollamaApiUrl/api/generate", [
 		'json' => [
 			'model' => $ollamaModel,
 			"prompt" => $prompt,
@@ -233,23 +250,23 @@ function getTools(): array
 				]
 			]
 		],
-		[
-			'type' => 'function',
-			'function' => [
-				'name' => 'llmPrompt',
-				'description' => 'Prompt an LLM without context or thinking. It uses the ollama /api/generate endpoint',
-				'parameters' => [
-					'type' => 'object',
-					'properties' => [
-						'prompt' => [
-							'type' => 'string',
-							'description' => 'The prompt to send to the LLM',
-						],
-					],
-					'required' => ['prompt'],
-				]
-			]
-		],
+//		[
+//			'type' => 'function',
+//			'function' => [
+//				'name' => 'llmPrompt',
+//				'description' => 'Prompt an LLM without context or thinking. It uses the ollama /api/generate endpoint',
+//				'parameters' => [
+//					'type' => 'object',
+//					'properties' => [
+//						'prompt' => [
+//							'type' => 'string',
+//							'description' => 'The prompt to send to the LLM',
+//						],
+//					],
+//					'required' => ['prompt'],
+//				]
+//			]
+//		],
 		[
 			'type' => 'function',
 			'function' => [
