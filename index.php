@@ -153,10 +153,11 @@ initial-scale=1.0" />
 			send your request.</p >
 		<a href="/?clear=true" >Clear chat</a >
 	</div >
+	<h3>Tool call logs:</h3>
+	<?php foreach ($log as $line) { ?>
+		<p> <?php echo $line; ?>  </p >
+	<?php } ?>
 </div >
-<?php foreach ($log as $line) { ?>
-<p> <?php echo $line; ?>  </p >
-<?php } ?>
 <script>
 	document.addEventListener('DOMContentLoaded', () => {
 		document.querySelectorAll('code').forEach(code => {
