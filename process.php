@@ -29,7 +29,13 @@ try {
 	}
 
 	$messages = run($messages, $think);
-	$done = false;
+	$lastMessage = $messages[array_key_last($messages)];
+	if ($lastMessage['role'] == 'assistant' && !empty($lastMessage['content'])) {
+		$done = true;
+	} else {
+		$done = false;
+	}
+
 	$iteration = 0;
 	while (!$done) {
 		if ($iteration > 10) {
